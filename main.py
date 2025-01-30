@@ -4,26 +4,29 @@ import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-
-LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+# Загружаем переменные окружения
 API_KEY = os.getenv("API_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
 
+# Инициализируем FastAPI
 app = FastAPI()
 
+# Модель запроса
 class SearchRequest(BaseModel):
     query: str
 
+# Функция для поиска
 def search_yandex(query):
-    url = f"https://yandex.ru/search/xml?folderid={FOLDER_ID}&apikey={API_KEY}&query={query}"
-
+    url = "https://yandex.ru/search/xml"
     params = {
+        "folderid": FOLDER_ID,
+        "apikey": API_KEY,
         "text": query,
         "lang": "ru",
         "type": "web",
-        "limit": 3,
+        "limit": 5
     }
-
+    
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': 'Mozilla/5.0'
@@ -33,49 +36,36 @@ def search_yandex(query):
         response = requests.get(url, params=params, headers=headers, timeout=3)
         response.raise_for_status()
 
-        # Дебаг: Сырые данные от Yandex
-        print("📡 Полученный XML ответ:")
-        print(response.text)
-        print("-" * 50)
-
+        # Парсим XML-ответ
         root = ET.fromstring(response.text)
-        results = []
+        results = root.findall('.//doc')
 
-        # Дебаг: Проверяем, какие теги есть в XML
-        print("🔎 Все найденные теги в XML:")
-        for child in root.iter():
-            print(f"Найден тег: {child.tag}")
+        extracted_results = []
+        for doc in results:
+            title_element = doc.find("title")
+            url_element = doc.find("url")
+            snippet_element = doc.find(".//passages/pass")
 
-        # Дебаг: Ищем в XML данные о результатах
-        docs = root.findall('.//doc')
-        if not docs:
-            print("❌ Внимание! В XML нет тега <doc>. Попробуй изменить поиск!")
-        
-        # Обрабатываем каждый результат
-        for doc in docs:
-            title = doc.find('title').text if doc.find('title') is not None else 'Нет заголовка'
-            url = doc.find('url').text if doc.find('url') is not None else 'Нет URL'
-            extended_text = doc.find('.//extended-text')
-            snippet = extended_text.text if extended_text is not None else 'Нет расширенного описания'
-            
-            results.append({
+            title = title_element.text if title_element is not None else "Нет заголовка"
+            url = url_element.text if url_element is not None else "Нет URL"
+            snippet = snippet_element.text if snippet_element is not None else "Нет описания"
+
+            extracted_results.append({
                 "title": title,
                 "url": url,
                 "snippet": snippet
             })
 
-        return results  # ✅ Теперь API получит данные
+        return extracted_results
 
     except requests.exceptions.RequestException as e:
-        print(f"Ошибка запроса: {e}")
-        return []
+        return [{"error": f"Ошибка запроса: {e}"}]
     except ET.ParseError as e:
-        print(f"Ошибка парсинга XML: {e}")
-        return []
+        return [{"error": f"Ошибка парсинга XML: {e}"}]
     except Exception as e:
-        print(f"Неожиданная ошибка: {e}")
-        return []
+        return [{"error": f"Неожиданная ошибка: {e}"}]
 
+# API эндпоинт
 @app.post("/search")
 def search_api(request: SearchRequest):
     results = search_yandex(request.query)
