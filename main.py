@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-API_KEY = os.getenv("DEEPSEEK_API_KEY")
+API_KEY = os.getenv("API_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
 
 
