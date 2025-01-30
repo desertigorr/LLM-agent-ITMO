@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import os
 
+API_KEY = os.getenv("DEEPSEEK_API_KEY")
 app = FastAPI()
+
+
 
 # Модель запроса
 class UserRequest(BaseModel):
@@ -10,13 +14,12 @@ class UserRequest(BaseModel):
 
 @app.post("/api/request")
 def handle_request(request: UserRequest):
-    """
-    Если query = "1", сервер отвечает "2".
-    В остальных случаях сервер отвечает "3".
-    """
+
     if request.query == "ангуляй":
         response = "энвилоуп"
-    else:
+    elif request.query == "ключ":
+        response = f"{API_KEY}"
+    else:  
         response = "не энвилоуп"
 
     return {
