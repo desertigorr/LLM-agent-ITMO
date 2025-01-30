@@ -1,9 +1,21 @@
 import requests
 import xml.etree.ElementTree as ET
 import os
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+
 LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 API_KEY = os.getenv("DEEPSEEK_API_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
+
+
+# ✅ Инициализируем FastAPI
+app = FastAPI()
+
+# 🔎 Модель запроса
+class SearchRequest(BaseModel):
+    query: str
 
 # типа RAG
 def search_yandex(query):
@@ -69,6 +81,8 @@ def search_yandex(query):
 
 
 
-query = "Когда ИТМО получил статус национального исследовательского университета?"
-results = search_yandex(query)
+@app.post("/search")
+def search_api(request: SearchRequest):
+    results = search_yandex(request.query)
+    return {"query": request.query, "results": results}
 
