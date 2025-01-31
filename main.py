@@ -9,8 +9,6 @@ LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 API_KEY = os.getenv("API_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
 
-
-
 # Создаем FastAPI
 app = FastAPI()
 
@@ -57,7 +55,7 @@ def search_yandex(query):
                 "snippet": snippet
             })
 
-        return results  # ✅ API получит корректные данные
+        return results  
 
     except requests.exceptions.RequestException as e:
         print(f"Ошибка запроса: {e}")
@@ -69,7 +67,7 @@ def search_yandex(query):
         print(f"Неожиданная ошибка: {e}")
         return []
 
-# 🔥 Функция запроса в LLM
+# функция запроса в LLM
 def query_llm(query, sources):
     URL = "https://api.together.xyz/v1/chat/completions"
     HEADERS = {
@@ -79,8 +77,7 @@ def query_llm(query, sources):
 
     # Формируем промпт для LLM
     formatted_query = f"""
-    Ты - интеллектуальный ассистент, который отвечает на вопросы про Университет ИТМО.
-    Вопрос может включать в себя варианты ответа 1-10 или может быть открытым (без вариантов ответа)
+    
     Используй приведенные ниже источники данных и выбери правильный ответ.
     Формат вывода ответа:
     Если вопрос требует выбора варианта, верни ТОЛЬКО число, обозначающее номер ответа, например если варианты
@@ -96,7 +93,7 @@ def query_llm(query, sources):
         "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
         "messages": [{"role": "user", "content": formatted_query}],
         "temperature": 0.5,
-        "max_tokens": 400
+        "max_tokens": 10
     }
 
     response = requests.post(URL, headers=HEADERS, json=data)
@@ -107,8 +104,8 @@ def query_llm(query, sources):
     else:
         return f"Ошибка: {response.status_code}, {response.json()}"
 
-# 🌍 API для поиска и ответа
-@app.post("/search")
+# API для поиска и ответа
+@app.post("/api/request")
 def search_api(request: SearchRequest):
     results = search_yandex(request.query)
 
@@ -117,8 +114,8 @@ def search_api(request: SearchRequest):
 
     # Отправляем в LLM
     response =  query_llm(request.query, results)
-    llm_response = response[0]
-    if llm_response == "-1":
+    llm_response = int(response[0])
+    if llm_response == -1:
         llm_response = "null"
 
     return {
