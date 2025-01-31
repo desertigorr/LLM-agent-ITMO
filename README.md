@@ -5,5 +5,5 @@ LLM-агент в виде интеллектуального ассистент
 ## Стек:
 - API app: Python + FastAPI + uvicorn
 - Webscraper: Yandex Seach API
-- LLM: meta-llama/Llama-3.3-70B-Instruct-Turbo-Free
+- LLM: meta-llama/Llama-3.3-70B-Instruct-Turbo
 - Docker
