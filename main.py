@@ -10,6 +10,7 @@ API_KEY = os.getenv("API_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
 
 
+
 # Создаем FastAPI
 app = FastAPI()
 
@@ -90,7 +91,7 @@ def query_llm(query, sources):
     Данные:
     {" | ".join([res["snippet"] for res in sources])}
     """
-
+    reasoning_src = {" | ".join([res["snippet"] for res in sources])}
     data = {
         "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
         "messages": [{"role": "user", "content": formatted_query}],
@@ -101,7 +102,8 @@ def query_llm(query, sources):
     response = requests.post(URL, headers=HEADERS, json=data)
     
     if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
+        res = (response.json()["choices"][0]["message"]["content"], reasoning_src)
+        return res
     else:
         return f"Ошибка: {response.status_code}, {response.json()}"
 
@@ -114,13 +116,14 @@ def search_api(request: SearchRequest):
         return {"id": request.id, "answer": None, "reasoning": "Нет данных", "sources": []}
 
     # Отправляем в LLM
-    llm_response = query_llm(request.query, results)
+    response =  query_llm(request.query, results)
+    llm_response = response[0]
     if llm_response == "-1":
         llm_response = "null"
 
     return {
         "id": request.id,
         "answer": llm_response,
-        "reasoning": "Ответ получен с использованием Yandex Search и AI",
+        "reasoning": response[1],
         "sources": [res["url"] for res in results]
     }
