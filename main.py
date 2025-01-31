@@ -81,7 +81,7 @@ def query_llm(query, sources):
     Используй приведенные ниже источники данных и выбери правильный ответ.
     Формат вывода ответа:
     Если вопрос требует выбора варианта, верни ТОЛЬКО число, обозначающее номер ответа, например если варианты
-    ответа - 1. А 2. Б - ты должен ответить "1" если правильный ответ "А". 
+    ответа - 1 А 2 Б - ты должен ответить "1" если правильный ответ "А". 
     Если вариантов ответа НЕТ - ответь ТОЛЬКО "-1".
 
     Вопрос: {query}
@@ -90,7 +90,7 @@ def query_llm(query, sources):
     """
     reasoning_src = {" | ".join([res["snippet"] for res in sources])}
     data = {
-        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
         "messages": [{"role": "user", "content": formatted_query}],
         "temperature": 0.5,
         "max_tokens": 10
@@ -115,9 +115,12 @@ def search_api(request: SearchRequest):
     # Отправляем в LLM
     response =  query_llm(request.query, results)
     print(response)
-    llm_response = int(response[0])
-    if llm_response == -1:
+    print("=====> " + str(response[0]) + str(type(response[0])))
+    llm_response = response[0]
+    if llm_response == "-1":
         llm_response = "null"
+    else:
+        llm_response = int(llm_response[0])
 
     return {
         "id": request.id,
