@@ -126,7 +126,7 @@ def search_api(request: SearchRequest):
 
     return {
         "id": request.id,
-        "answer": llm_response,
-        "reasoning": response[1],
+        "answer": llm_response, 
+        "reasoning": f"{response[1]}" +f' ***Данный ответ предоставлен моделью Llama-3.3-70B-Instruct-Turbo***',
         "sources": [res["url"] for res in results]
     }
