@@ -121,8 +121,6 @@ def search_api(request: SearchRequest):
     llm_response = response[0]
     if llm_response == "-1":
         llm_response = "null"
-    elif type(response[0]) != int:
-        llm_response = "null"
     else:
         llm_response = int(llm_response[0])
 
