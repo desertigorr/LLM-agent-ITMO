@@ -7,3 +7,4 @@ LLM-агент в виде интеллектуального ассистент
 - Webscraper: Yandex Seach API
 - LLM: meta-llama/Llama-3.3-70B-Instruct-Turbo
 - Docker
+- Cloud: Render Dashboard
